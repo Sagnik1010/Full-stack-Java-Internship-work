@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Beautiful Weather App</title>
+    <style>
+      :root {
+        --bg: #0f1724;
+        --card: #0b1220;
+        --muted: #9aa6b2;
+        --accent: #4fb0c6;
+        --glass: rgba(255, 255, 255, 0.03);
+        --glass-strong: rgba(255, 255, 255, 0.05);
+        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: radial-gradient(
+            1200px 600px at 10% 20%,
+            rgba(79, 176, 198, 0.12),
+            transparent
+          ),
+          linear-gradient(180deg, #071022 0%, #081424 60%);
+        color: #e6eef3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 28px;
+      }
+
+      .app {
+        width: 100%;
+        max-width: 960px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          rgba(255, 255, 255, 0.015)
+        );
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.6);
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        gap: 20px;
+        backdrop-filter: blur(6px) saturate(120%);
+      }
+
+      /* Left panel */
+      .panel {
+        background: linear-gradient(180deg, var(--glass), var(--glass-strong));
+        border-radius: 12px;
+        padding: 18px;
+        min-height: 260px;
+      }
+
+      .brand {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, var(--accent), #6dd4e3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #04202a;
+        box-shadow: 0 6px 18px rgba(79, 176, 198, 0.12);
+      }
+
+      h1 {
+        font-size: 18px;
+        margin: 6px 0 2px;
+      }
+      p.lead {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .search {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+      }
+      input[type="text"] {
+        flex: 1;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background: transparent;
+        color: inherit;
+      }
+      button {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: #04202a;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button[disabled] {
+        opacity: 0.6;
+        cursor: default;
+      }
+
+      .quick-list {
+        margin-top: 14px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .chip {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 8px 10px;
+        border-radius: 999px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .meta {
+        margin-top: 16px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      /* Right panel */
+      .main {
+        padding: 22px;
+        border-radius: 12px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02),
+          transparent
+        );
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-height: 260px;
+      }
+
+      .current {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        justify-content: space-between;
+      }
+      .weather-left {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .icon {
+        width: 96px;
+        height: 96px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        background: linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.03),
+          rgba(255, 255, 255, 0.01)
+        );
+      }
+      .temp {
+        font-size: 42px;
+        font-weight: 700;
+      }
+      .desc {
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .details {
+        display: flex;
+        gap: 18px;
+        align-items: center;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .detail {
+        background: rgba(255, 255, 255, 0.02);
+        padding: 8px 12px;
+        border-radius: 8px;
+      }
+
+      .forecast {
+        display: flex;
+        gap: 12px;
+        overflow: auto;
+        padding-bottom: 6px;
+      }
+      .day {
+        min-width: 110px;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
+      }
+      .day .dtemp {
+        font-weight: 700;
+        font-size: 18px;
+      }
+      .footer {
+        margin-top: auto;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 880px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+        .icon {
+          width: 72px;
+          height: 72px;
+          font-size: 34px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" role="application" aria-label="Weather app">
+      <aside class="panel">
+        <div class="brand">
+          <div class="logo">WA</div>
+          <div>
+            <h1>Weather App</h1>
+            <p class="lead">Beautiful UI • No API key required</p>
+          </div>
+        </div>
+
+        <div class="search" style="margin-top: 16px">
+          <input
+            id="cityInput"
+            type="text"
+            placeholder="Search city (e.g. Kolkata, Paris)"
+            aria-label="City name"
+          />
+          <button id="searchBtn">Search</button>
+        </div>
+
+        <div class="quick-list" aria-hidden="false">
+          <div class="chip">New York</div>
+          <div class="chip">London</div>
+          <div class="chip">Tokyo</div>
+          <div class="chip">Sydney</div>
+          <div class="chip">Mumbai</div>
+        </div>
+
+        <div class="meta">
+          <p>
+            <strong>Tip:</strong> This app uses Open-Meteo for weather and
+            Nominatim (OpenStreetMap) for geocoding — no API key needed.
+          </p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="current">
+          <div class="weather-left">
+            <div class="icon" id="weatherIcon">☀️</div>
+            <div>
+              <div style="display: flex; gap: 10px; align-items: center">
+                <div class="temp" id="temperature">--°C</div>
+                <div class="desc" id="description">—</div>
+              </div>
+              <div style="margin-top: 6px; color: var(--muted)">
+                <span id="place">No place selected</span> ·
+                <span id="time">--:--</span>
+              </div>
+            </div>
+          </div>
+          <div class="details" id="quickDetails">
+            <div class="detail">Wind: <span id="wind">—</span></div>
+            <div class="detail">Pressure: <span id="pressure">—</span></div>
+            <div class="detail">Humidity: <span id="humidity">—</span></div>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="margin: 0 0 8px 0">Hourly forecast</h3>
+          <div class="forecast" id="forecast"></div>
+        </div>
+
+        <div class="footer">
+          <div>Last updated: <span id="updated">—</span></div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const $ = (sel) => document.querySelector(sel);
+      const searchBtn = $("#searchBtn");
+      const cityInput = $("#cityInput");
+      const chips = Array.from(document.querySelectorAll(".chip"));
+
+      const temperature = $("#temperature");
+      const description = $("#description");
+      const placeNode = $("#place");
+      const timeNode = $("#time");
+      const windNode = $("#wind");
+      const pressureNode = $("#pressure");
+      const humidityNode = $("#humidity");
+      const forecastNode = $("#forecast");
+      const updatedNode = $("#updated");
+      const weatherIcon = $("#weatherIcon");
+
+      let controller = null;
+
+      chips.forEach((c) =>
+        c.addEventListener("click", () => {
+          cityInput.value = c.textContent;
+          doSearch(c.textContent);
+        })
+      );
+
+      searchBtn.addEventListener("click", () =>
+        doSearch(cityInput.value.trim())
+      );
+      cityInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doSearch(cityInput.value.trim());
+      });
+
+      const LAST_KEY = "weatherapp_lastcity_v1";
+      const lastCity = localStorage.getItem(LAST_KEY);
+      if (lastCity) {
+        cityInput.value = lastCity;
+        doSearch(lastCity);
+      }
+
+      async function doSearch(query) {
+        if (!query) return flash("Please enter a city name");
+        setLoading(true);
+        localStorage.setItem(LAST_KEY, query);
+
+        if (controller) controller.abort();
+        controller = new AbortController();
+        try {
+          const geoUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            query
+          )}`;
+          const geoResp = await fetch(geoUrl, {
+            signal: controller.signal,
+            headers: { "Accept-Language": "en" },
+          });
+          if (!geoResp.ok) throw new Error("Geocoding failed");
+          const geoData = await geoResp.json();
+          if (!geoData || geoData.length === 0)
+            throw new Error("Place not found");
+          const place = geoData[0];
+          const lat = parseFloat(place.lat);
+          const lon = parseFloat(place.lon);
+          const displayName = place.display_name
+            .split(",")
+            .slice(0, 3)
+            .join(",");
+
+          const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m,precipitation&current_weather=true&timezone=auto`;
+          const wResp = await fetch(weatherUrl, { signal: controller.signal });
+          if (!wResp.ok) throw new Error("Weather fetch failed");
+          const w = await wResp.json();
+
+          renderCurrent(displayName, w.current_weather, w.hourly);
+        } catch (err) {
+          if (err.name === "AbortError") return;
+          console.error(err);
+          flash(err.message || "Failed to fetch data");
+        } finally {
+          setLoading(false);
+        }
+      }
+
+      function renderCurrent(place, current, hourly) {
+        placeNode.textContent = place;
+
+        const t = current.temperature;
+        const ws = current.windspeed;
+
+        temperature.textContent = `${Math.round(t)}°C`;
+        description.textContent = weatherCodeToText(current.weathercode);
+        windNode.textContent = `${ws} m/s`;
+
+        const idx = hourly.time.indexOf(nowISO);
+        pressureNode.textContent = "—";
+        humidityNode.textContent = "—";
+
+        timeNode.textContent = new Date().toLocaleString();
+        updatedNode.textContent = new Date().toLocaleString();
+        weatherIcon.textContent = weatherCodeToEmoji(current.weathercode);
+
+        const times = hourly.time;
+        const temps = hourly.temperature_2m;
+        const prec = hourly.precipitation || [];
+        forecastNode.innerHTML = "";
+        const nowIndex = Math.max(0, times.indexOf(nowISO));
+        for (
+          let i = nowIndex;
+          i < Math.min(times.length, nowIndex + 24);
+          i += 2
+        ) {
+          const d = document.createElement("div");
+          d.className = "day";
+          const dt = new Date(times[i]);
+          const hh = dt.toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const temp = Math.round(temps[i]);
+          const rain = prec[i] ? `${prec[i]} mm` : "—";
+          d.innerHTML = `<div style="font-size:13px;color:var(--muted)">${hh}</div><div class="dtemp">${temp}°C</div><div style="font-size:13px;margin-top:6px;color:var(--muted)">Rain: ${rain}</div>`;
+          forecastNode.appendChild(d);
+        }
+      }
+
+      function weatherCodeToEmoji(code) {
+        if (code === 0) return "☀️";
+        if (code === 1 || code === 2) return "🌤️";
+        if (code === 3) return "☁️";
+        if (code >= 45 && code <= 48) return "🌫️";
+        if (code >= 51 && code <= 67) return "🌦️";
+        if (code >= 71 && code <= 77) return "🌨️";
+        if (code >= 80 && code <= 86) return "🌧️";
+        if (code >= 95) return "⛈️";
+        return "🌤️";
+      }
+      function weatherCodeToText(code) {
+        const map = {
+          0: "Clear sky",
+          1: "Mainly clear",
+          2: "Partly cloudy",
+          3: "Overcast",
+          45: "Fog",
+          48: "Depositing rime fog",
+          51: "Light drizzle",
+          53: "Moderate drizzle",
+          55: "Dense drizzle",
+          61: "Slight rain",
+          63: "Moderate rain",
+          65: "Heavy rain",
+          71: "Slight snow",
+          73: "Moderate snow",
+          75: "Heavy snow",
+          80: "Rain showers",
+          81: "Moderate showers",
+          82: "Violent showers",
+          95: "Thunderstorm",
+        };
+        return map[code] || "—";
+      }
+
+      function setLoading(isLoading) {
+        searchBtn.disabled = isLoading;
+        searchBtn.textContent = isLoading ? "Loading..." : "Search";
+      }
+
+      function flash(msg) {
+        const n = document.createElement("div");
+        n.textContent = msg;
+        n.style.position = "fixed";
+        n.style.left = "50%";
+        n.style.transform = "translateX(-50%)";
+        n.style.bottom = "30px";
+        n.style.background = "rgba(0,0,0,0.7)";
+        n.style.color = "white";
+        n.style.padding = "10px 16px";
+        n.style.borderRadius = "8px";
+        n.style.zIndex = 9999;
+        document.body.appendChild(n);
+        setTimeout(() => n.remove(), 3000);
+      }
+    </script>
+  </body>
+</html>
