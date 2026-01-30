@@ -1,0 +1,92 @@
+version: "3.8"
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+
+  service-discovery:
+    build: ../service-discovery
+    container_name: service-discovery
+    ports:
+      - "8761:8761"
+
+  config-server:
+    build: ../config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      - service-discovery
+
+  api-gateway:
+    build: ../api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - service-discovery
+      - config-server
+
+  user-service:
+    build: ../user-service
+    depends_on:
+      - postgres
+      - service-discovery
+
+  product-service:
+    build: ../product-service
+    depends_on:
+      - postgres
+      - kafka
+      - service-discovery
+
+  inventory-service:
+    build: ../inventory-service
+    depends_on:
+      - kafka
+      - service-discovery
+
+  order-service:
+    build: ../order-service
+    depends_on:
+      - postgres
+      - kafka
+      - service-discovery
+
+  payment-service:
+    build: ../payment-service
+    depends_on:
+      - postgres
+      - kafka
+      - service-discovery
+
+  notification-service:
+    build: ../notification-service
+    depends_on:
+      - kafka
+      - service-discovery
