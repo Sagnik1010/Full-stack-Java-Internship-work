@@ -1,0 +1,8 @@
+replicaCount: 2
+
+image:
+  repository: <yourname>/product-service
+  tag: latest
+
+service:
+  port: 8080
